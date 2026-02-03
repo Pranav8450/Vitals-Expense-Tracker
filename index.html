@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Vitals – Expense Tracker</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart  -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+
+  <!-- Your custom styles -->
+  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50 flex min-h-screen">
+  <!-- SIDEBAR -->
+  <aside
+    class="w-72 bg-white border-r border-gray-100 fixed inset-y-0 flex flex-col z-10 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+    <div class="p-8 pb-4">
+      <div class="flex items-center gap-3 text-2xl font-bold text-[#111827]">
+        <img src="logo.png" alt="Vitals Logo" class="w-10 h-10 rounded-xl shadow-sm object-cover">
+        Vitals
+      </div>
+    </div>
+
+    <nav class="flex-grow px-4 mt-6 space-y-1">
+      <div id="nav-dashboard" onclick="switchView('dashboard')" class="nav-link active">
+        <i class="fa-solid fa-chart-pie w-6"></i>
+        Dashboard
+      </div>
+
+      <div id="nav-transactions" onclick="switchView('transactions')" class="nav-link">
+        <i class="fa-solid fa-list-ul w-6"></i>
+        Transactions
+      </div>
+
+      <div id="nav-analytics" onclick="switchView('analytics')" class="nav-link">
+        <i class="fa-solid fa-chart-line w-6"></i>
+        Analytics
+      </div>
+    </nav>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="ml-72 flex-1 p-10 max-w-7xl mx-auto w-full">
+    <!-- DASHBOARD VIEW -->
+    <section id="view-dashboard">
+      <header class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Overview</h1>
+          <p class="text-gray-500 mt-1">Here is your financial summary</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="btn-primary bg-indigo-500" onclick="openIncomeModal()">
+            <i class="fa-solid fa-plus"></i> Add Income
+          </button>
+          <button class="btn-primary" onclick="openModal()">
+            <i class="fa-solid fa-minus"></i> Add Expense
+          </button>
+        </div>
+      </header>
+
+      <!-- HERO CARD: DAILY ALLOWANCE -->
+      <div
+        class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white shadow-xl mb-10 relative overflow-hidden">
+        <div class="absolute right-0 top-0 opacity-10 transform translate-x-10 -translate-y-10">
+          <i class="fa-solid fa-coins text-9xl"></i>
+        </div>
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-end md:items-center">
+          <div>
+            <div class="text-indigo-100 font-medium mb-1 uppercase tracking-wider text-sm">Daily Safe Spend</div>
+            <div class="text-5xl font-bold tracking-tight" id="val-allowance">₹0.00</div>
+            <div class="mt-2 text-indigo-100 opacity-90 max-w-md">
+              You can safely spend this amount today without exceeding your monthly budget.
+            </div>
+          </div>
+          <div class="mt-4 md:mt-0">
+            <button onclick="switchView('analytics')"
+              class="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              View Insights <i class="fa-solid fa-arrow-right ml-1"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <!-- Balance Card -->
+        <div class="stat-card">
+          <div class="stat-icon-wrapper bg-blue-50 text-blue-500">
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <div class="card-title">Total Balance</div>
+          <div id="val-balance" class="card-value">₹0.00</div>
+        </div>
+
+        <!-- Income Card (NEW) -->
+        <div class="stat-card">
+          <div class="stat-icon-wrapper bg-emerald-50 text-emerald-500">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+          </div>
+          <div class="card-title">Total Income</div>
+          <div id="val-income" class="card-value text-emerald-600">₹0.00</div>
+        </div>
+
+        <!-- Expense Card -->
+        <div class="stat-card">
+          <div class="stat-icon-wrapper bg-red-50 text-red-500">
+            <i class="fa-solid fa-arrow-trend-down"></i>
+          </div>
+          <div class="card-title">Total Expense</div>
+          <div id="val-expense" class="card-value text-red-600">₹0.00</div>
+        </div>
+
+        <!-- Health Card -->
+        <div class="stat-card">
+          <div class="stat-icon-wrapper bg-purple-50 text-purple-500">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <div class="card-title">Financial Health</div>
+          <div class="flex items-baseline gap-2">
+            <div id="val-health" class="card-value text-purple-600">--</div>
+            <div id="val-savings" class="text-sm text-gray-400 font-medium">0% Saved</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANALYTICS VIEW -->
+    <section id="view-analytics" class="hidden-view">
+      <h1 class="text-3xl font-bold text-gray-900 tracking-tight mb-8">Financial Insights</h1>
+
+      <!-- CHART SECTION -->
+      <div class="bg-white p-8 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-gray-100">
+        <h2 class="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie text-gray-400"></i>
+          Spending by Category
+        </h2>
+        <div class="h-80">
+          <canvas id="monthlyChart"></canvas>
+        </div>
+        <div id="chart-legend" class="flex flex-wrap gap-4 mt-6 px-2">
+          <!-- JS Injects legend items here -->
+        </div>
+        <div id="chart-summary"
+          class="mt-8 p-4 bg-gray-50 rounded-xl border border-gray-100 text-sm text-gray-600 leading-relaxed italic">
+          <!-- JS Injects summary here -->
+          Fetching spending insights...
+        </div>
+      </div>
+
+
+    </section>
+
+    <!-- TRANSACTIONS VIEW -->
+    <section id="view-transactions" class="hidden-view">
+      <header class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Transactions</h1>
+        <div class="flex gap-3">
+          <button class="btn-primary" onclick="openModal()">
+            <i class="fa-solid fa-minus"></i> Add Expense
+          </button>
+        </div>
+      </header>
+
+      <div id="transaction-log"
+        class="bg-white p-6 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-gray-100 space-y-4">
+        <!-- JS Injects here -->
+      </div>
+    </section>
+  </main>
+
+  <!-- ADD EXPENSE MODAL -->
+  <div id="expense-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center z-50">
+    <div class="modal-content bg-white p-8 rounded-2xl w-96">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-gray-900">Add Expense</h2>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+      <div class="relative mb-6">
+        <span class="absolute left-3 top-2.5 text-gray-500">₹</span>
+        <input type="number" id="input-amt" placeholder="0.00"
+          class="w-full border border-gray-300 pl-8 p-2.5 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all" />
+      </div>
+
+      <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+      <select id="input-cat"
+        class="w-full border border-gray-300 p-2.5 mb-8 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none bg-white">
+        <!-- categories injected dynamically -->
+      </select>
+
+      <div class="flex justify-end gap-3">
+        <button onclick="closeModal()" class="btn-secondary">Cancel</button>
+        <button class="btn-primary w-full justify-center" onclick="saveExpense()">Save Expense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD INCOME MODAL -->
+  <div id="income-modal" class="hidden fixed inset-0 modal-backdrop flex items-center justify-center z-50">
+    <div class="modal-content bg-white p-8 rounded-2xl w-96">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-gray-900">Add Income</h2>
+        <button onclick="closeIncomeModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+      <div class="relative mb-6">
+        <span class="absolute left-3 top-2.5 text-gray-500">₹</span>
+        <input type="number" id="income-amt" placeholder="0.00"
+          class="w-full border border-gray-300 pl-8 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" />
+      </div>
+
+      <label class="block text-sm font-medium text-gray-700 mb-2">Source</label>
+      <input type="text" id="income-cat" placeholder="e.g. Salary, Freelance"
+        class="w-full border border-gray-300 p-2.5 mb-8 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+
+      <div class="flex justify-end gap-3">
+        <button onclick="closeIncomeModal()" class="btn-secondary">Cancel</button>
+        <button class="btn-primary w-full justify-center bg-blue-600" onclick="saveIncome()">Save Income</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
+  <script src="work.js"></script>
+</body>
+
+</html>
